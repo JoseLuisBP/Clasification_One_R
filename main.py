@@ -1,6 +1,6 @@
 import pandas
 
-from OneR import OneR
+from one_r import OneR
 
 
 def main():
