@@ -8,13 +8,14 @@ class OneR():
         self.regla = None
 
     def tablas_frecuencia(self):
-        print("Computando tabla de frecuencias...")
+        print("Creando tabla de frecuencias")
 
-        datos = self.datos_entrenamiento
+        tablas_frecuencia = {}
+        for columna in self.datos_entrenamiento.columns:
+            frecuencia = self.datos_entrenamiento[columna].value_counts()
+            tablas_frecuencia[columna] = frecuencia
 
-        freq_counts = datos.groupby([self.clase]).size().unstack(fill_value = 1)
-
-        return freq_counts
+        return tablas_frecuencia
 
     def frecuencia_errores(self, tabla_frecuencia):
         print ("Calulado desempeño")
@@ -27,15 +28,15 @@ class OneR():
             tasa_errores = 0.0
 
             for valor in tabla.index:
-                rule = f"If {atributo} is {valor}, predict {tabla.loc[valor].idxmax()}"
+                rule = f"If {atributo} is {valor}, predict {tabla.loc[valor]}"
                 reglas_atributo[valor] = rule
 
                 # Calculamos la tasa de error para esta regla
-                tasa_errores += tabla.loc[valor][tabla.loc[valor].idxmax()] / tabla.loc[valor].sum()
+                tasa_errores += tabla.loc[valor].sum() - tabla.loc[valor].max()
 
-        # Guardamos las reglas y la tasa de error para este atributo
-        reglas[atributo] = reglas_atributo
-        tasa_errores[atributo] = tasa_errores / len(tabla.index)
+            # Guardamos las reglas y la tasa de error para este atributo
+            reglas[atributo] = reglas_atributo
+            tasa_errores[atributo] = tasa_errores / len(tabla.index)
 
         return tasa_errores
 
@@ -51,8 +52,8 @@ class OneR():
 
         # Aplicar la regla a cada instancia
         for i, instancia in self.datos_prueba.iterrows():
-            valor_atributo = instancia[self.regla['attribute']]
-            prediccion_clase = self.regla['values'].get(valor_atributo, None)
+            valor_atributo = instancia[self.regla]
+            prediccion_clase = self.regla.get(valor_atributo, None)
 
             if prediccion_clase is not None:
                 # Comparar con la clase real
